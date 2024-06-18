@@ -6,6 +6,8 @@ const mapWeatherData = (data: any) => {
     temperature: data.main.temp,
     feelsLike: data.main.feels_like,
     humidity: data.main.humidity,
+    clouds: data.clouds.all,
+    rain: data.rain ? data.rain["1h"] : undefined,
     pressure: data.main.pressure,
     wind: data.wind,
     sunset: data.sys.sunset,

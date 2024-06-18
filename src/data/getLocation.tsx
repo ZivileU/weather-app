@@ -1,7 +1,7 @@
+import { MAPBOX_TOKEN } from "../tokens";
+
 const getLocation = async (lng: number, lat: number) => {
-  const access_token =
-    "pk.eyJ1Ijoieml2aWxldSIsImEiOiJjbHhnYmxzeG0wejIwMnFxejZ3NmNkZmZ1In0.XE4UFhZ5ta02OjScjLZTSQ";
-  const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${access_token}`;
+  const url = `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}&access_token=${MAPBOX_TOKEN}`;
 
   try {
     const response = await fetch(url);

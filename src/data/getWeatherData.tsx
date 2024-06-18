@@ -1,6 +1,7 @@
-const getWeatherData = async (lng: number, lat: number) => {
-  const apiKey = "7dcf756be94ada9f7e48721421460103";
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}`;
+import { WEATHER_API_KEY } from "../tokens";
+
+const getWeatherData = async (lng: number, lat: number, units: string) => {
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=${units}&appid=${WEATHER_API_KEY}`;
 
   try {
     const response = await fetch(url);

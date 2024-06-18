@@ -5,6 +5,8 @@ export interface WeatherData {
   temperature: number;
   feelsLike: number;
   humidity: number;
+  clouds: number;
+  rain: number | undefined;
   pressure: number;
   wind: {
     speed: number;
