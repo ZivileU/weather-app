@@ -16,7 +16,7 @@ const Switch: React.FC<SwitchProps> = ({
 }) => {
   return (
     <div className="wrapper">
-      <label className="switch" title={title}>
+      <label className="switch" title={title} data-testid="unit-switch">
         <input
           type="checkbox"
           id="unit-switch"
