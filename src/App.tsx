@@ -10,50 +10,60 @@ import mapWeatherData from "./utilities/mapWeatherData";
 import getWindDirection from "./utilities/getWindDirection";
 import { WeatherData } from "./types/WeatherData";
 import { MAPBOX_TOKEN } from "./tokens";
+import { metric, imperial } from "./constants/units";
 import "./App.css";
+import Switch from "./components/Switch";
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 const MapComponent: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map>();
-  const [lng, setLng] = useState(12.14);
-  const [lat, setLat] = useState(55.41);
-  const [zoom, setZoom] = useState(9);
+  const [lng, setLng] = useState<number | string>(12.14);
+  const [lat, setLat] = useState<number | string>(55.41);
+  const [zoom, setZoom] = useState<number | string>(9);
+  const [isChecked, setIsChecked] = useState(true);
+
+  const { type: unitType, speed, temp } = isChecked ? metric : imperial;
+
+  const handleToggle = () => {
+    setIsChecked(!isChecked);
+    localStorage.setItem("metric", JSON.stringify(!isChecked));
+  };
 
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    const storageUnits = JSON.parse(localStorage.getItem("metric") || "null");
+    if (storageUnits !== isChecked && storageUnits !== null) {
+      setIsChecked(!isChecked);
+    }
+  }, []);
 
+  useEffect(() => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [lng, lat],
-      zoom: zoom,
+      center: [Number(lng), Number(lat)],
+      zoom: Number(zoom),
     });
 
     map.current.on("move", () => {
-      setZoom(parseFloat(map.current!.getZoom().toFixed(2)));
+      setZoom(map.current!.getZoom().toFixed(2));
     });
 
     map.current.on("click", (e) => {
       const createPopup = async () => {
-        const data = await getWeatherData(
-          e.lngLat?.lng,
-          e.lngLat?.lat,
-          "metric"
-        );
-        const location = await getLocation(e.lngLat?.lng, e.lngLat?.lat);
-        console.log(data);
+        const data = await getWeatherData(e.lngLat.lng, e.lngLat.lat, unitType);
+        const location = await getLocation(e.lngLat.lng, e.lngLat.lat);
 
-        if (data && location && map.current) {
+        if (data && map.current) {
           const weatherData: WeatherData = mapWeatherData(data);
-          const address = location.features[0].properties.full_address;
+          const address = location?.features[0]?.properties.full_address;
 
           new mapboxgl.Popup()
             .setLngLat([e.lngLat.lng, e.lngLat.lat])
             .setHTML(
               `<div>
-                <h3>${address}</h3>
+                <h3>${address || weatherData.name}</h3>
                 <h4>Weather:</h4>
                 <p>${weatherData.description}</p>
                 <img src="https://openweathermap.org/img/wn/${
@@ -61,10 +71,10 @@ const MapComponent: React.FC = () => {
                 }@2x.png"/>
                 <br />
                 <h4>Temperature:</h4>
-                <p>${Math.round(weatherData.temperature)}C</p>
+                <p>${Math.round(weatherData.temperature)}${temp}</p>
                 <br />
                 <h4>Feels like:</h4>
-                <p>${Math.round(weatherData.feelsLike)}C</p>
+                <p>${Math.round(weatherData.feelsLike)}${temp}</p>
                 <br />
                 <h4>Humidity:</h4>
                 <p>${weatherData.humidity}%</p>
@@ -88,7 +98,7 @@ const MapComponent: React.FC = () => {
                 <p>${getWindDirection(weatherData.wind.deg)}</p>
                 <br />
                 <h4>Wind speed:</h4>
-                <p>${weatherData.wind.speed}m/s</p>
+                <p>${weatherData.wind.speed}${speed}</p>
                 <br />
                 <h4>Sunrise:</h4>
                 <p>${dayjs
@@ -105,8 +115,8 @@ const MapComponent: React.FC = () => {
         }
       };
 
-      setLng(parseFloat(e.lngLat?.lng.toFixed(2)));
-      setLat(parseFloat(e.lngLat?.lat.toFixed(2)));
+      setLng(e.lngLat.lng.toFixed(2));
+      setLat(e.lngLat.lat.toFixed(2));
 
       createPopup();
     });
@@ -117,12 +127,20 @@ const MapComponent: React.FC = () => {
         mapboxgl: mapboxgl,
       })
     );
-  }, []);
+  }, [isChecked]);
 
   return (
     <div>
-      <div className="sidebar">
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      <div className="topbar">
+        <div className="sidebar">
+          Longitude: {lng} | Latitude: {lat} | Zoom: {zoom} | Units:
+        </div>
+        <Switch
+          isChecked={isChecked}
+          handleToggle={handleToggle}
+          label="Metric"
+          title={isChecked ? "Switch to Imperial" : "Switch to Metric"}
+        />
       </div>
       <div ref={mapContainer} className="map-container" />
     </div>
